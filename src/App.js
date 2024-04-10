@@ -26,7 +26,7 @@ function App() {
 
   let snakePosition = [new Vector(3, 3)]
   let snakeDirection = new Vector(1, 0)
-  const snakeSpeed = 300
+  const snakeSpeed = 250
 
   const fruitPosition = new Vector(0, 0)
   newFruitPosition();
@@ -119,6 +119,7 @@ function App() {
       Math.round(fruitPosition.y) * sizeFactor,
       sizeFactor,
       sizeFactor);
+    ctx.fillStyle = "green";
     ctx.fill();
     ctx.stroke();
 
@@ -130,21 +131,24 @@ function App() {
         Math.round(snake.y) * sizeFactor,
         sizeFactor,
         sizeFactor);
+        ctx.fillStyle = "green";
       ctx.fill();
       ctx.stroke();
     });
   }
 
   function changeDirection(newDirection) {
-    if (snakeDirection.y !== 1) {
-      snakeDirection = newDirection
-    } else if (snakeDirection.x !== 1) {
-      snakeDirection = newDirection
-    } else if (snakeDirection.y !== -1) {
-      snakeDirection = newDirection
-    } else if (snakeDirection.x !== -1) {
-      snakeDirection = newDirection
+    if (snakeDirection.y === 1 && newDirection.y === -1) {
+      return;
+    } else if (snakeDirection.y === -1 && newDirection.y === 1) {
+      return;
+    } else if (snakeDirection.x === 1 && newDirection.x === -1) {
+      return;
+    } else if (snakeDirection.x === -1 && newDirection.x === 1) {
+      return;
     }
+
+    snakeDirection = newDirection
   }
 
   useEffect(() => {
@@ -192,33 +196,33 @@ function App() {
   return (
     <div className='h-screen bg-slate-900'>
       <div className='p-5 flex items-center justify-center'>
-        <h1 className='text-white'>Snake</h1>
+        <h1 className='text-white text-5xl font-mono text-lime-600'>Snake</h1>
       </div>
       <div className='flex items-center justify-center'>
-        <canvas className='bg-green-500 border-2 border-black' ref={canvasRef} width={canvasWidth} height={canvasHeight}></canvas>
+        <canvas className='bg-lime-600 border-2 border-black' ref={canvasRef} width={canvasWidth} height={canvasHeight}></canvas>
       </div>
 
-      <div className='p-8 flex items-center justify-center'>
+      <div className='p-4 flex items-center justify-center'>
         <button className='' onClick={() => changeDirection(new Vector(-1, 0))}>
-          <i className="fa fa-angle-left"></i>
+          <i className="fa fa-angle-left text-5xl font-black"></i>
         </button>
 
         <div className='flex flex-col items-center'>
           <div>
             <button className='' onClick={() => changeDirection(new Vector(0, -1))}>
-              <i className="fa fa-angle-up"></i>
+              <i className="fa fa-angle-up text-5xl font-black"></i>
             </button>
           </div>
           <br />
           <div>
             <button className='' onClick={() => changeDirection(new Vector(0, 1))}>
-              <i className="fa fa-angle-down"></i>
+              <i className="fa fa-angle-down text-5xl font-black"></i>
             </button>
           </div>
 
         </div>
         <button className='' onClick={() => changeDirection(new Vector(1, 0))}>
-          <i className="fa fa-angle-right"></i>
+          <i className="fa fa-angle-right text-5xl font-black"></i>
         </button>
       </div>
 

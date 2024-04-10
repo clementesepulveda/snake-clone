@@ -14,12 +14,16 @@
 }
 
 button {
-  background-color: white;
+  background-color: rgb(132 204 22);
+  color: rgb(5 46 22);
   margin: 0.4rem;
   padding: 1rem;
   border-radius: 3px;
   height: 4rem;
   width: 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .App-header {
