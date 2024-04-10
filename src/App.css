@@ -13,6 +13,15 @@
   }
 }
 
+button {
+  background-color: white;
+  margin: 0.4rem;
+  padding: 1rem;
+  border-radius: 3px;
+  height: 4rem;
+  width: 4rem;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

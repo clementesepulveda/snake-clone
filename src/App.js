@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useRef, useEffect } from 'react'
+import useWindowDimensions from './useWindowDimensions';
 
 class Vector {
   constructor(x, y) {
@@ -9,9 +10,15 @@ class Vector {
 }
 
 function App() {
-  const sizeFactor = 20
+  const windowSize = useWindowDimensions();
+
+  let sizeFactor = 20;
   const width = 32;
   const height = 32;
+
+  if (width * sizeFactor > windowSize.width) {
+    sizeFactor = (windowSize.width - 20) / width
+  }
   const canvasWidth = width * sizeFactor;
   const canvasHeight = height * sizeFactor;
 
@@ -128,6 +135,18 @@ function App() {
     });
   }
 
+  function changeDirection(newDirection) {
+    if (snakeDirection.y !== 1) {
+      snakeDirection = newDirection
+    } else if (snakeDirection.x !== 1) {
+      snakeDirection = newDirection
+    } else if (snakeDirection.y !== -1) {
+      snakeDirection = newDirection
+    } else if (snakeDirection.x !== -1) {
+      snakeDirection = newDirection
+    }
+  }
+
   useEffect(() => {
     window.addEventListener('keypress', e => {
       // TODO fast movements bug
@@ -172,13 +191,39 @@ function App() {
 
   return (
     <div className='h-screen bg-slate-900'>
-    <div className='p-10 flex items-center justify-center'>
-      <h1 className='color-white'>Snake</h1>
-    </div>
-      <div className='p-10 flex items-center justify-center'>
+      <div className='p-5 flex items-center justify-center'>
+        <h1 className='text-white'>Snake</h1>
+      </div>
+      <div className='flex items-center justify-center'>
         <canvas className='bg-green-500 border-2 border-black' ref={canvasRef} width={canvasWidth} height={canvasHeight}></canvas>
       </div>
-    </div>
+
+      <div className='p-8 flex items-center justify-center'>
+        <button className='' onClick={() => changeDirection(new Vector(-1, 0))}>
+          <i className="fa fa-angle-left"></i>
+        </button>
+
+        <div className='flex flex-col items-center'>
+          <div>
+            <button className='' onClick={() => changeDirection(new Vector(0, -1))}>
+              <i className="fa fa-angle-up"></i>
+            </button>
+          </div>
+          <br />
+          <div>
+            <button className='' onClick={() => changeDirection(new Vector(0, 1))}>
+              <i className="fa fa-angle-down"></i>
+            </button>
+          </div>
+
+        </div>
+        <button className='' onClick={() => changeDirection(new Vector(1, 0))}>
+          <i className="fa fa-angle-right"></i>
+        </button>
+      </div>
+
+    </div >
+
   );
 }
 
