@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import useWindowDimensions from './useWindowDimensions';
 
 class Vector {
@@ -12,9 +12,10 @@ class Vector {
 function App() {
   const windowSize = useWindowDimensions();
 
-  let sizeFactor = 20;
+  let sizeFactor = 35;
   const width = 16;
   const height = 16;
+  const snakeSpeed = 250
 
   if (width * sizeFactor > windowSize.width) {
     sizeFactor = (windowSize.width - 20) / width
@@ -24,20 +25,38 @@ function App() {
 
   const canvasRef = useRef(null);
 
-  let snakePosition = [new Vector(3, 3)]
+  let snakePosition = [new Vector(0, 0)]
   let snakeDirection = new Vector(1, 0)
-  const snakeSpeed = 250
 
-  const fruitPosition = new Vector(0, 0)
-  newFruitPosition();
+  const fruitPosition = new Vector(-1, -1)
 
-  let isGameOver = false;
+  // false in each frame
+  // check before move, add after move
+  let mustSpawnFruit = false;
+  let [isGameOver, setGameOver] = useState(false);
+
+  newGame();
+
+  function newGame() {
+    snakePosition = [new Vector(
+      Math.floor(width / 2),
+      Math.floor(height / 2)
+    )]
+
+    const directions = [
+      new Vector(1, 0),
+      new Vector(0, 1),
+      new Vector(-1, 0),
+      new Vector(0, -1),
+    ]
+    snakeDirection = directions[Math.round(Math.random() * (directions.length - 1))]
+    newFruitPosition();
+  }
 
   function restartGame() {
-    isGameOver = false;
-    snakePosition = [new Vector(3, 3)]
-    snakeDirection = new Vector(1, 0)
-    newFruitPosition();
+    setGameOver(false);
+    newGame();
+
   }
 
   function moveSnake() {
@@ -53,6 +72,7 @@ function App() {
       lastHead.y + snakeDirection.y,
     ))
   }
+  console.log('before cut')
 
   function checkState() {
     const headPosition = snakePosition[snakePosition.length - 1]
@@ -62,10 +82,11 @@ function App() {
       gameOver();
     }
     if (headPosition.x + snakeDirection.x >= width || headPosition.y + snakeDirection.y >= height) {
+      console.log('cut')
       gameOver();
     }
 
-    // TODO death by tail
+    // death by tail
     snakePosition.forEach(bodyPos => {
       if (headPosition.x + snakeDirection.x === bodyPos.x && headPosition.y + snakeDirection.y === bodyPos.y) {
         const lastPos = snakePosition[0] // this pos might move
@@ -75,32 +96,57 @@ function App() {
       }
     });
 
+    checkAteFruit()
+  }
+
+  function checkAteFruit() {
+    const headPosition = snakePosition[snakePosition.length - 1]
+
     // eat fruit (add tail, remove fruit, add new fruit)
     if (headPosition.x + snakeDirection.x === fruitPosition.x && headPosition.y + snakeDirection.y === fruitPosition.y) {
       growSnake();
-      newFruitPosition();
+      mustSpawnFruit = true;
     }
   }
 
-  function checkSnakeSelfCollision() {
-
-  }
-
   function growSnake() {
-    snakePosition.unshift(new Vector(0, 0));
+    snakePosition.unshift(new Vector(-1, -1));
   }
 
   function newFruitPosition() {
-    // TODO check not over snake
-    fruitPosition.x = Math.round(Math.random() * (width - 1))
-    fruitPosition.y = Math.round(Math.random() * (height - 1))
+    let positions = []
+    for (let i = 0; i < width; i++) {
+      for (let j = 0; j < height; j++) {
+
+        let notInSnake = true;
+        snakePosition.forEach(snake => {
+          if (snake.x === i && snake.y === j) {
+            notInSnake = false;
+          }
+        });
+
+        if (notInSnake) {
+          positions.push(new Vector(i, j))
+        }
+      }
+    }
+
+    if (positions.length === 0) {
+      victory();
+      return;
+    }
+
+    const randomValidPosition = positions[
+      Math.round(Math.random() * (positions.length - 1))
+    ]
+    fruitPosition.x = randomValidPosition.x
+    fruitPosition.y = randomValidPosition.y
   }
 
   function gameOver() {
     // TODO show game over and button to reset
-    isGameOver = true;
-    snakeDirection.x = 0;
-    snakeDirection.y = 0;
+    setGameOver(true);
+    snakeDirection = new Vector(0, 0);
 
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
@@ -110,7 +156,27 @@ function App() {
     ctx.fillStyle = "green";
     ctx.textBaseline = "middle";
     ctx.font = "50px Arial";
-    ctx.fillText("Game Over",
+    ctx.fillText(txt,
+      width * sizeFactor / 2 - ctx.measureText(txt).width / 2,
+      height * sizeFactor / 2
+    )
+  }
+
+  function victory() {
+    // TODO show game over and button to reset
+    setGameOver(true);
+    snakeDirection.x = 0;
+    snakeDirection.y = 0;
+
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+
+    const txt = "Victory"
+
+    ctx.fillStyle = "green";
+    ctx.textBaseline = "middle";
+    ctx.font = "50px Arial";
+    ctx.fillText(txt,
       width * sizeFactor / 2 - ctx.measureText(txt).width / 2,
       height * sizeFactor / 2
     )
@@ -128,7 +194,7 @@ function App() {
       Math.round(fruitPosition.y) * sizeFactor,
       sizeFactor,
       sizeFactor);
-    ctx.fillStyle = "green";
+    ctx.fillStyle = "red";
     ctx.fill();
     ctx.stroke();
 
@@ -163,7 +229,6 @@ function App() {
 
   useEffect(() => {
     window.addEventListener('keypress', e => {
-      // TODO fast movements bug
       if (e.key === 'w') {
         changeDirection(new Vector(0, -1))
       } else if (e.key === 'a') {
@@ -182,53 +247,69 @@ function App() {
         restartGame()
       }
     });
-  }, []);
+  }, [isGameOver]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (isGameOver) {
+        gameOver()
         return;
       }
+
+      mustSpawnFruit = false;
       checkState();
       if (isGameOver) {
         return;
       }
       moveSnake();
+      console.log(isGameOver)
+      if (mustSpawnFruit) {
+        newFruitPosition();
+      }
+      if (isGameOver) {
+        return;
+      }
       drawBoard();
     }, snakeSpeed);
     return () => clearInterval(interval);
-  }, []);
+  }, [isGameOver]);
 
   return (
-    <div className='h-screen bg-slate-900'>
+    <div className='h-screen bg-gray-800'>
       <div className='p-5 flex items-center justify-center'>
-        <h1 className='text-white text-5xl font-mono text-lime-600'>Snake</h1>
+        <h1 className='text-white text-5xl font-mono text-lime-500'>Snake</h1>
       </div>
       <div className='flex items-center justify-center'>
         <canvas className='bg-lime-600 border-2 border-black' ref={canvasRef} width={canvasWidth} height={canvasHeight}></canvas>
+
+        {isGameOver
+          ? <button className='z-20 absolute top-80 font-green' onClick={restartGame}>Restart</button>
+          : <></>
+        }
+
       </div>
 
       <div className='p-4 flex items-center justify-center'>
         <button className='' onClick={() => changeDirection(new Vector(-1, 0))}>
-          <i className="fa fa-angle-left text-5xl font-black"></i>
+          <i className="fa fa-angle-left text-5xl font-black pr-2"></i>
         </button>
 
         <div className='flex flex-col items-center'>
           <div>
             <button className='' onClick={() => changeDirection(new Vector(0, -1))}>
-              <i className="fa fa-angle-up text-5xl font-black"></i>
+              <i className="fa fa-angle-up text-5xl font-black pb-2"></i>
             </button>
           </div>
           <br />
           <div>
             <button className='' onClick={() => changeDirection(new Vector(0, 1))}>
-              <i className="fa fa-angle-down text-5xl font-black"></i>
+              <i className="fa fa-angle-down text-5xl font-black pt-2"></i>
             </button>
           </div>
 
         </div>
         <button className='' onClick={() => changeDirection(new Vector(1, 0))}>
-          <i className="fa fa-angle-right text-5xl font-black"></i>
+          <i className="fa fa-angle-right text-5xl font-black pl-2"></i>
         </button>
       </div>
 
