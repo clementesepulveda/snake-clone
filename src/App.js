@@ -13,8 +13,8 @@ function App() {
   const windowSize = useWindowDimensions();
 
   let sizeFactor = 20;
-  const width = 32;
-  const height = 32;
+  const width = 16;
+  const height = 16;
 
   if (width * sizeFactor > windowSize.width) {
     sizeFactor = (windowSize.width - 20) / width
@@ -64,10 +64,14 @@ function App() {
     if (headPosition.x + snakeDirection.x >= width || headPosition.y + snakeDirection.y >= height) {
       gameOver();
     }
+
     // TODO death by tail
     snakePosition.forEach(bodyPos => {
       if (headPosition.x + snakeDirection.x === bodyPos.x && headPosition.y + snakeDirection.y === bodyPos.y) {
-        gameOver();
+        const lastPos = snakePosition[0] // this pos might move
+        if (!(headPosition.x + snakeDirection.x === lastPos.x && headPosition.y + snakeDirection.y === lastPos.y)) {
+          gameOver();
+        }
       }
     });
 
@@ -76,6 +80,10 @@ function App() {
       growSnake();
       newFruitPosition();
     }
+  }
+
+  function checkSnakeSelfCollision() {
+
   }
 
   function growSnake() {
@@ -133,7 +141,7 @@ function App() {
         Math.round(snake.y) * sizeFactor,
         sizeFactor,
         sizeFactor);
-        ctx.fillStyle = i%2 == 0 ? "rgb(132 204 22)": "green";
+      ctx.fillStyle = i % 2 === 0 ? "rgb(132 204 22)" : "green";
       ctx.fill();
       ctx.stroke();
 
@@ -143,9 +151,9 @@ function App() {
 
   function changeDirection(newDirection) {
     if (snakePosition.length > 1) { // can't go back
-      const headPos = snakePosition[snakePosition.length-1]
-      const neckPos = snakePosition[snakePosition.length-2]
-      if (headPos.x + snakeDirection.x == neckPos.x && headPos.y + snakeDirection.y == headPos.y) {
+      const headPos = snakePosition[snakePosition.length - 1]
+      const neckPos = snakePosition[snakePosition.length - 2]
+      if (headPos.x + newDirection.x === neckPos.x && headPos.y + newDirection.y === neckPos.y) {
         return;
       }
     }
@@ -156,18 +164,14 @@ function App() {
   useEffect(() => {
     window.addEventListener('keypress', e => {
       // TODO fast movements bug
-      if (e.key === 'w' && snakeDirection.y !== 1) {
-        snakeDirection.x = 0
-        snakeDirection.y = -1
-      } else if (e.key === 'a' && snakeDirection.x !== 1) {
-        snakeDirection.x = -1
-        snakeDirection.y = 0
-      } else if (e.key === 's' && snakeDirection.y !== -1) {
-        snakeDirection.x = 0
-        snakeDirection.y = 1
-      } else if (e.key === 'd' && snakeDirection.x !== -1) {
-        snakeDirection.x = 1
-        snakeDirection.y = 0
+      if (e.key === 'w') {
+        changeDirection(new Vector(0, -1))
+      } else if (e.key === 'a') {
+        changeDirection(new Vector(-1, 0))
+      } else if (e.key === 's') {
+        changeDirection(new Vector(0, 1))
+      } else if (e.key === 'd') {
+        changeDirection(new Vector(1, 0))
       }
 
       if (e.key === 'p') {
