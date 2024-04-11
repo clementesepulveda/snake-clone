@@ -99,6 +99,7 @@ function App() {
 
     const txt = "Game Over"
 
+    ctx.fillStyle = "green";
     ctx.textBaseline = "middle";
     ctx.font = "50px Arial";
     ctx.fillText("Game Over",
@@ -124,28 +125,29 @@ function App() {
     ctx.stroke();
 
     // SNAKE
-    snakePosition.forEach(snake => {
+    let i = 0;
+    snakePosition.slice().reverse().forEach(snake => {
       ctx.beginPath();
       ctx.rect(
         Math.round(snake.x) * sizeFactor,
         Math.round(snake.y) * sizeFactor,
         sizeFactor,
         sizeFactor);
-        ctx.fillStyle = "green";
+        ctx.fillStyle = i%2 == 0 ? "rgb(132 204 22)": "green";
       ctx.fill();
       ctx.stroke();
+
+      i += 1
     });
   }
 
   function changeDirection(newDirection) {
-    if (snakeDirection.y === 1 && newDirection.y === -1) {
-      return;
-    } else if (snakeDirection.y === -1 && newDirection.y === 1) {
-      return;
-    } else if (snakeDirection.x === 1 && newDirection.x === -1) {
-      return;
-    } else if (snakeDirection.x === -1 && newDirection.x === 1) {
-      return;
+    if (snakePosition.length > 1) { // can't go back
+      const headPos = snakePosition[snakePosition.length-1]
+      const neckPos = snakePosition[snakePosition.length-2]
+      if (headPos.x + snakeDirection.x == neckPos.x && headPos.y + snakeDirection.y == headPos.y) {
+        return;
+      }
     }
 
     snakeDirection = newDirection
